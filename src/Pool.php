@@ -51,9 +51,7 @@ class Pool
         if ($this->isInited == false) {
 
             for ($i = 0; $i < $this->minConn; $i++) {
-                $db = new Db();
-                $this->poolConnNum++;
-                $this->idlePool->push($db);
+                $this->addConnection();
             }
             $this->isInited = true;
         }
@@ -64,18 +62,35 @@ class Pool
     {
         if ($this->idlePool->count() == 0){
             // 空闲连接池数为0
-            if ($this->waitQueue->count() < $this->maxWaitNum){
-                $this->waitQueue->push(array($serv,$fd));
+            if ($this->poolConnNum < $this->maxConn){
+                // 申请新的连接
+                $this->addConnection();
             }else{
-                throw new Exception('wait queue exceed');
+                if ($this->waitQueue->count() < $this->maxWaitNum){
+                    $this->waitQueue->push(array($serv,$fd));
+                }else{
+                    throw new Exception('wait queue exceed');
+                }
             }
         }else{
 
         }
     }
 
+    /**
+     * 创建新连接
+     */
+    protected function addConnection()
+    {
+        $db = new Db();
+        $this->poolConnNum++;
+        $this->idlePool->push($db);
+    }
 
+    protected function getDbFromPool()
+    {
+        $this->busyPool->push($this->idlePool->pop());
 
-
+    }
 
 }
