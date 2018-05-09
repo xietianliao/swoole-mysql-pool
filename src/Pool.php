@@ -13,7 +13,6 @@ class Pool
     private $poolConnNum = 0; // 连接池连接数
     private $isInited = false; // 是否初始化
     private $idlePool; // 空闲连接
-    private $busyPool; // 工作连接
     private $waitQueue; // 等待队列
 
 
@@ -22,7 +21,6 @@ class Pool
     private function __construct()
     {
         $this->idlePool = new \SplQueue();
-        $this->busyPool = new \SplQueue();
         $this->waitQueue = new \SplQueue();
         $this->init();
     }
@@ -57,7 +55,12 @@ class Pool
         }
     }
 
-
+    /**
+     *  获取连接对外接口
+     * @param $serv
+     * @param $fd
+     * @throws Exception
+     */
     public function getConnection($serv,$fd)
     {
         if ($this->idlePool->count() == 0){
@@ -73,6 +76,7 @@ class Pool
                 }
             }
         }else{
+            $db = $this->getDbFromPool();
 
         }
     }
@@ -87,9 +91,21 @@ class Pool
         $this->idlePool->push($db);
     }
 
+    /**
+     * 从连接池取出连接
+     */
     protected function getDbFromPool()
     {
-        $this->busyPool->push($this->idlePool->pop());
+        $db = $this->idlePool->pop();
+        if ($db->ping()){
+            // 连接可用
+            return $db;
+        }else{
+            // 销毁连接，连接数减一
+            unset($db);
+            $this->poolConnNum--;
+            return null;
+        }
 
     }
 
