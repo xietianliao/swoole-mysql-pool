@@ -38,5 +38,21 @@ class Db
         return $this->conn->exec($param);
     }
 
+    /**
+     *  ping连接
+     * @return bool
+     */
+    public function ping()
+    {
+        try{
+            $this->conn->getAttribute(PDO::ATTR_SERVER_INFO);
+        } catch (\PDOException $e) {
+            if(strpos($e->getMessage(), 'MySQL server has gone away')!==false){
+                return false;
+            }
+        }
+        return true;
+    }
+
 
 }
