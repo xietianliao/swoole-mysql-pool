@@ -8,7 +8,7 @@ class Pool
     protected $maxConn = 100; //最大连接数
     protected $minConn = 5; // 最小连接数
     protected $timeout = 60; // 连接时间
-    protected $maxWaitNum = 100; // 最大等待数
+    protected $maxWaitNum = 0; // 最大等待数
 
     private $poolConnNum = 0; // 连接池连接数
     private $isInited = false; // 是否初始化
@@ -97,6 +97,7 @@ class Pool
     {
         $this->idlePool->push($db);
     }
+
 
 
     /**
