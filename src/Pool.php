@@ -8,7 +8,7 @@ class Pool
     protected $maxConn = 100; //最大连接数
     protected $minConn = 5; // 最小连接数
     protected $timeout = 60; // 连接时间
-    protected $maxWaitNum = 100; // 最大等待数
+    protected $maxWaitNum = 0; // 最大等待数
 
     private $poolConnNum = 0; // 连接池连接数
     private $isInited = false; // 是否初始化
@@ -59,6 +59,7 @@ class Pool
      *  获取连接对外接口
      * @param $serv
      * @param $fd
+     * @return mixed|null
      * @throws Exception
      */
     public function getConnection($serv,$fd)
@@ -77,9 +78,27 @@ class Pool
             }
         }else{
             $db = $this->getDbFromPool();
-
+            if(is_null($db)){
+                // 加入等待队列
+                $this->waitQueue->push(array($serv,$fd));
+            }else{
+                return $db;
+            }
         }
     }
+
+
+
+    /**
+     *  回收连接
+     * @param $db
+     */
+    public function recycle($db)
+    {
+        $this->idlePool->push($db);
+    }
+
+
 
     /**
      * 创建新连接
