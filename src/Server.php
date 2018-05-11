@@ -9,17 +9,22 @@ namespace mysqlPool;
 
 require 'Pool.php';
 
-$server = new \swoole_http_server('0.0.0.0','9501');
+$server = new \swoole_server('0.0.0.0',9501,SWOOLE_BASE,SWOOLE_SOCK_TCP);
 $server->set([
-    'work_num' => 4,
-    'daemonize' => true
+    'work_num' => 4
 ]);
-$server->on('WorkerStart',function ($serv,$fd){
-    Pool::$instance;
+$server->on('WorkerStart',function($serv,$work_id){
+    Pool::getInstance()->init();
 });
-$server->on('request',function ($request,$response){
-    $db = Pool::$instance->getConnection($request,$response);
-    $response->end('ok');
-    Pool::$instance->recycle($db);
+$server->on('connect',function ($serv,$fd){
+    echo "connect \n";
+});
+$server->on('receive',function ($serv,$fd,$from_id,$data){
+    $db = Pool::getInstance()->getConnection($serv,$fd);
+    if (!is_null($db)){
+        $serv->send($fd,$db->query($data));
+    }
+    echo 'pool connect total:'.Pool::getInstance()->getConnectCount()."\n";
+    echo 'idle count:'.Pool::getInstance()->getIdleCount()."\n";
 });
 $server->start();
