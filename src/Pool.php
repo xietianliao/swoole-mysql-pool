@@ -3,6 +3,8 @@ namespace mysqlPool;
 
 use Swoole\Mysql\Exception;
 
+require 'Db.php';
+
 class Pool
 {
     protected $maxConn = 100; //最大连接数
@@ -22,7 +24,6 @@ class Pool
     {
         $this->idlePool = new \SplQueue();
         $this->waitQueue = new \SplQueue();
-        $this->init();
     }
 
     private function __clone()
@@ -30,7 +31,7 @@ class Pool
         // TODO: Implement __clone() method.
     }
 
-    public function getInstance()
+    public static function getInstance()
     {
         if (self::$instance instanceof self){
             return self::$instance;
@@ -44,7 +45,7 @@ class Pool
     /**
      * 初始化连接池
      */
-    protected function init()
+    public function init()
     {
         if ($this->isInited == false) {
 
@@ -76,15 +77,9 @@ class Pool
                     throw new Exception('wait queue exceed');
                 }
             }
-        }else{
-            $db = $this->getDbFromPool();
-            if(is_null($db)){
-                // 加入等待队列
-                $this->waitQueue->push(array($serv,$fd));
-            }else{
-                return $db;
-            }
         }
+        $db = $this->getDbFromPool();
+        return $db;
     }
 
 
@@ -126,6 +121,16 @@ class Pool
             return null;
         }
 
+    }
+
+    public function getIdleCount()
+    {
+        return $this->idlePool->count();
+    }
+
+    public function getConnectCount()
+    {
+        return $this->poolConnNum;
     }
 
 }

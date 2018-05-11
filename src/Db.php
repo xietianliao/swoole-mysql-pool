@@ -3,7 +3,7 @@ namespace mysqlPool;
 
 class Db
 {
-    const DB_HOST = 'localhost';
+    const DB_HOST = 'mysql';
     const DB_PORT = 3306;
     const DB_NAME = 'test';
     const DB_USER = 'root';
@@ -13,23 +13,19 @@ class Db
 
     public function __construct()
     {
-        require_once './config.php';
         $this->conn = new \PDO(
-            sprintf("mysql:host=%s;port=%d;dbname=%s",self::DB_HOST,self::DB_PORT,self::DB_NAME),
+            sprintf("mysql:host=%s;port=%d;dbname=%s;charset=utf8;",self::DB_HOST,self::DB_PORT,self::DB_NAME),
             self::DB_USER,
             self::DB_PWD,
             array(
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'UTF8';",
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_PERSISTENT => true
+                \PDO::ATTR_PERSISTENT => true
             )
         );
     }
 
-    public function query($sql,$param)
+    public function query($sql)
     {
-        $this->conn->prepare($sql);
-        return $this->conn->query($param);
+        return json_encode($this->conn->query($sql));
     }
 
     public function execute($sql,$param)
@@ -45,7 +41,7 @@ class Db
     public function ping()
     {
         try{
-            $this->conn->getAttribute(PDO::ATTR_SERVER_INFO);
+            $this->conn->getAttribute(\PDO::ATTR_SERVER_INFO);
         } catch (\PDOException $e) {
             if(strpos($e->getMessage(), 'MySQL server has gone away')!==false){
                 return false;
