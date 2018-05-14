@@ -8,6 +8,7 @@
 namespace mysqlPool;
 
 require 'Pool.php';
+require 'PoolException.php';
 
 $server = new \swoole_server('0.0.0.0',9501,SWOOLE_BASE,SWOOLE_SOCK_TCP);
 $server->set([
@@ -20,8 +21,16 @@ $server->on('connect',function ($serv,$fd){
     echo "connect \n";
 });
 $server->on('receive',function ($serv,$fd,$from_id,$data){
-    $db = Pool::getInstance()->getConnection($serv,$fd);
+    try{
+        $db = Pool::getInstance()->getConnection($serv,$fd);
+    }catch (PoolException $exception){
+
+    }
     if (!is_null($db)){
+        if (is_string($db)){
+            // 错误信息
+            $serv->send($fd,$db);
+        }
         $serv->send($fd,$db->query($data));
     }
     echo 'pool connect total:'.Pool::getInstance()->getConnectCount()."\n";

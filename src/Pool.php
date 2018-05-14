@@ -1,9 +1,8 @@
 <?php
 namespace mysqlPool;
 
-use Swoole\Mysql\Exception;
-
-require 'Db.php';
+require_once 'Db.php';
+require_once 'PoolException.php';
 
 class Pool
 {
@@ -61,7 +60,7 @@ class Pool
      * @param $serv
      * @param $fd
      * @return mixed|null
-     * @throws Exception
+     * @throws PoolException
      */
     public function getConnection($serv,$fd)
     {
@@ -74,7 +73,7 @@ class Pool
                 if ($this->waitQueue->count() < $this->maxWaitNum){
                     $this->waitQueue->push(array($serv,$fd));
                 }else{
-                    throw new Exception('wait queue exceed');
+                    throw new PoolException(1001);
                 }
             }
         }
@@ -100,7 +99,11 @@ class Pool
      */
     protected function addConnection()
     {
-        $db = new Db();
+        try{
+            $db = new Db();
+        }catch (\PDOException $PDOException){
+            return false;
+        }
         $this->poolConnNum++;
         $this->idlePool->push($db);
     }
@@ -118,7 +121,7 @@ class Pool
             // 销毁连接，连接数减一
             unset($db);
             $this->poolConnNum--;
-            return null;
+            throw new PoolException();
         }
 
     }
