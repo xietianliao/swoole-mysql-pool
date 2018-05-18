@@ -1,8 +1,7 @@
 <?php
 namespace mysqlPool;
 
-require_once 'Db.php';
-require_once 'PoolException.php';
+use mysqlPool\exception\PoolException;
 
 class Pool
 {
@@ -73,7 +72,7 @@ class Pool
                 if ($this->waitQueue->count() < $this->maxWaitNum){
                     $this->waitQueue->push(array($serv,$fd));
                 }else{
-                    throw new PoolException(1001);
+                    throw new PoolException('wait queue exceed',1001);
                 }
             }
         }
@@ -121,7 +120,6 @@ class Pool
             // 销毁连接，连接数减一
             unset($db);
             $this->poolConnNum--;
-            throw new PoolException();
         }
 
     }
