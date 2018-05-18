@@ -1,0 +1,19 @@
+{
+    "name": "walkerx/mysql-pool",
+    "description": "swoole mysql pool demo",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "walker",
+            "email": "showphp@foxmail.com"
+        }
+    ],
+    "require": {},
+
+    "autoload": {
+        "psr-4": {
+            "mysqlPool\\": "src/"
+        }
+    }
+}
