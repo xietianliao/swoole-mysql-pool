@@ -15,7 +15,6 @@ class Pool
     private $idlePool; // 空闲连接
     private $waitQueue; // 等待队列
 
-
     public static $instance; //连接池对象单例
 
     private function __construct()
@@ -115,11 +114,16 @@ class Pool
         $db = $this->idlePool->pop();
         if ($db->ping()){
             // 连接可用
+            // 检测引用次数
+            if ($db->isExceedQuoteMax()){
+                $this->destroyConnection($db);
+                return null;
+            }
             return $db;
         }else{
             // 销毁连接，连接数减一
-            unset($db);
-            $this->poolConnNum--;
+            $this->destroyConnection($db);
+            return null;
         }
 
     }
@@ -132,6 +136,15 @@ class Pool
     public function getConnectCount()
     {
         return $this->poolConnNum;
+    }
+
+    /**
+     *  销毁连接
+     */
+    public function destroyConnection($db)
+    {
+        unset($db);
+        $this->poolConnNum--;
     }
 
 }

@@ -8,6 +8,9 @@ class Db
     const DB_NAME = 'test';
     const DB_USER = 'root';
     const DB_PWD = 'root';
+    // 引用次数
+    private $quoteNum = 0;
+    const QUOTE_MAX_NUM = 3; // 最大使用次数
 
     private $conn;
 
@@ -48,6 +51,14 @@ class Db
             }
         }
         return true;
+    }
+
+    /**
+     *  检测引用是否超标
+     */
+    public function isExceedQuoteMax()
+    {
+        return $this->quoteNum>=self::QUOTE_MAX_NUM?true:false;
     }
 
 
